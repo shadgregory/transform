@@ -1,4 +1,4 @@
-#/usr/bin/env perl
+#!/usr/bin/env perl
 use 5.014;
 
 use File::Basename qw(dirname);
