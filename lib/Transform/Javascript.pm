@@ -1,5 +1,6 @@
 package Transform::Javascript;
 use Exporter qw(import);
+use Scalar::Util qw(refaddr);
  
 our @EXPORT_OK = qw(transform);
 
@@ -11,17 +12,24 @@ sub new {
 
 #transform perl array to javascript
 sub _process_array {
-    my ( $self, $data_struct ) = @_;
+    my ( $self, $data_struct, %history ) = @_;
     die "Error: Invalid Array" if ( ref($data_struct) ne 'ARRAY' );
     return "[]" if ( @{$data_struct} == 0 );
+    if (!%history) {
+        %history = ();
+    }
+    $history{refaddr($data_struct)} = 1 if (refaddr($data_struct));
     my $array_string = "[";
     for ( my $i = 0; $i < @{$data_struct}; $i++ ) {
+        if (refaddr($data_struct->[$i]) && exists $history{refaddr($data_struct->[$i])}) {
+            die "Circular Reference";
+        }
         if ( @{$data_struct} == $i + 1 ) {
             if ( ref( $data_struct->[$i] ) eq 'ARRAY' ) {
-                $array_string .= $self->_process_array( $data_struct->[$i] );
+                $array_string .= $self->_process_array( $data_struct->[$i], %history );
             }
             elsif ( ref( $data_struct->[$i] ) eq 'HASH' ) {
-                $array_string .= $self->_process_hash( $data_struct->[$i] );
+                $array_string .= $self->_process_hash( $data_struct->[$i], %history );
             }
             else {
                 if ( $data_struct->[$i] =~ m/\d+/ ) {
@@ -34,10 +42,10 @@ sub _process_array {
         }
         else {
             if ( ref( $data_struct->[$i] ) eq 'ARRAY' ) {
-                $array_string .= $self->_process_array( $data_struct->[$i] ) . ", ";
+                $array_string .= $self->_process_array( $data_struct->[$i], %history ) . ", ";
             }
             elsif ( ref( $data_struct->[$i] ) eq 'HASH' ) {
-                $array_string .= $self->_process_hash( $data_struct->[$i] ) . ", ";
+                $array_string .= $self->_process_hash( $data_struct->[$i], %history ) . ", ";
             }
             else {
                 if ( $data_struct->[$i] =~ m/\d+/ ) {
@@ -54,16 +62,24 @@ sub _process_array {
 
 #transform perl hash to javascript
 sub _process_hash {
-    my ( $self, $data_struct ) = @_;
+    my ( $self, $data_struct, %history ) = @_;
     die "Error: Invalid Hash" if ( ref($data_struct) ne 'HASH' );
     return "{}" if ( keys %{$data_struct} == 0 );
+    if (!%history) {
+        %history = ();
+    }
+    $history{refaddr($data_struct)} = 1 if (refaddr($data_struct));
     my $hash_string = "{";
     my @keys        = keys %{$data_struct};
     for ( my $i = 0; $i < @keys; $i++ ) {
+        if (refaddr($data_struct->{$keys[$i]}) && $history{refaddr($data_struct->{$keys[$i]})}) {
+            die "Circular Reference";
+        }
         if ( @keys == $i + 1 ) {
             if ( ref( $data_struct->{ $keys[$i] } ) eq 'ARRAY' ) {
                 $hash_string
-                  .= "\"" . $keys[$i] . "\" : " . $self->_process_array( $data_struct->{ $keys[$i] } );
+                  .= "\"" . $keys[$i] . "\" : " . $self->_process_array( $data_struct->{ $keys[$i]
+                      }, %history );
             }
             elsif ( ref( $data_struct->{ $keys[$i] } ) eq 'HASH' ) {
                 $hash_string
