@@ -32,11 +32,11 @@ sub _process_array {
                 $array_string .= $self->_process_hash( $data_struct->[$i], %history );
             }
             else {
-                if ( $data_struct->[$i] =~ m/\d+/ ) {
+                if ( $data_struct->[$i] =~ m/^\d+$/ ) {
                     $array_string .= $data_struct->[$i];
                 }
                 else {
-                    $array_string .= "\"" . $data_struct->[$i] . "\"3";
+                    $array_string .= "\"" . $data_struct->[$i] . "\"";
                 }
             }
         }
@@ -48,7 +48,7 @@ sub _process_array {
                 $array_string .= $self->_process_hash( $data_struct->[$i], %history ) . ", ";
             }
             else {
-                if ( $data_struct->[$i] =~ m/\d+/ ) {
+                if ( $data_struct->[$i] =~ m/^\d+$/ ) {
                     $array_string .= $data_struct->[$i] . ", ";
                 }
                 else {
@@ -86,7 +86,7 @@ sub _process_hash {
                   .= "\"" . $keys[$i] . "\" : " . $self->_process_hash( $data_struct->{ $keys[$i] } );
             }
             else {
-                if ( $data_struct->{ $keys[$i] } =~ m/\d+/ ) {
+                if ( $data_struct->{ $keys[$i] } =~ m/^\d+$/ ) {
                     $hash_string .= "\"" . $keys[$i] . "\" : " . $data_struct->{ $keys[$i] };
                 }
                 else {
@@ -104,7 +104,7 @@ sub _process_hash {
                   . $self->_process_hash( $data_struct->{ $keys[$i] } ) . ", ";
             }
             else {
-                if ( $data_struct->{ $keys[$i] } =~ m/\d+/ ) {
+                if ( $data_struct->{ $keys[$i] } =~ m/^\d+$/ ) {
                     $hash_string .= "\"" . $keys[$i] . "\" : " . $data_struct->{ $keys[$i] } . ", ";
                 }
                 else {

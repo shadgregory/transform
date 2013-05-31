@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::Simple tests => 5;
+use Test::Simple tests => 6;
 use Test::Exception;
 use File::Basename qw(dirname);
 use Cwd qw(abs_path);
@@ -20,3 +20,9 @@ my @dt = ();
 my $a = \@dt;
 push(@dt, $a);
 dies_ok { $js->transform(\@dt)}
+my @dt2 = ();
+my $a2 = \@dt2;
+my $b = (1, $a2);
+push(@dt2, $b);
+dies_ok { $js->transform(\@dt2)}
+print $html->transform(\@dt2);
